@@ -27,17 +27,29 @@ export function AdminPlayersPage() {
           fetch("/api/players/groups"),
         ]);
 
-        const playersData = await playersRes.json();
-        const clubsData = await clubsRes.json();
-        const groupsData = await groupsRes.json();
+        const parseJson = async (res: Response) => {
+          const text = await res.text();
+          if (!text.trim()) return {};
+          try {
+            return JSON.parse(text) as { data?: unknown; error?: string };
+          } catch {
+            return { error: res.ok ? "Invalid JSON from server" : text || res.statusText };
+          }
+        };
+
+        const [playersData, clubsData, groupsData] = await Promise.all([
+          parseJson(playersRes),
+          parseJson(clubsRes),
+          parseJson(groupsRes),
+        ]);
 
         if (playersRes.ok === false) {
-          const msg = (playersData as { error?: string }).error || playersRes.statusText;
+          const msg = playersData.error || playersRes.statusText;
           console.error("Failed to fetch players:", playersRes.status, msg);
           if (playersRes.status === 500) setApiError((prev) => prev || msg);
         }
         if (clubsRes.ok === false) {
-          const msg = (clubsData as { error?: string }).error || clubsRes.statusText;
+          const msg = clubsData.error || clubsRes.statusText;
           console.error("Failed to fetch clubs:", clubsRes.status, msg);
           if (clubsRes.status === 500) setApiError((prev) => prev || msg);
         }
@@ -46,14 +58,14 @@ export function AdminPlayersPage() {
         }
 
         console.log("Fetched data:", {
-          players: playersData.data?.length ?? 0,
-          clubs: clubsData.data?.length ?? 0,
-          groups: groupsData.data?.length ?? 0,
+          players: (playersData.data as unknown[])?.length ?? 0,
+          clubs: (clubsData.data as unknown[])?.length ?? 0,
+          groups: (groupsData.data as unknown[])?.length ?? 0,
         });
 
-        setPlayers(playersData.data ?? []);
-        setClubs(clubsData.data ?? []);
-        setGroups(groupsData.data ?? []);
+        setPlayers((playersData.data as Player[]) ?? []);
+        setClubs((clubsData.data as Club[]) ?? []);
+        setGroups((groupsData.data as number[]) ?? []);
       } catch (error) {
         console.error("Failed to fetch data:", error);
         setApiError(error instanceof Error ? error.message : "Грешка при зареждане");
