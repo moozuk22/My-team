@@ -14,10 +14,12 @@ export function AdminPlayersPage() {
   const [clubs, setClubs] = useState<Club[]>([]);
   const [groups, setGroups] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
+  const [apiError, setApiError] = useState<string | null>(null);
   const [selectedClubId, setSelectedClubId] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
+      setApiError(null);
       try {
         const [playersRes, clubsRes, groupsRes] = await Promise.all([
           fetch("/api/players"),
@@ -25,31 +27,36 @@ export function AdminPlayersPage() {
           fetch("/api/players/groups"),
         ]);
 
-        if (!playersRes.ok) {
-          console.error("Failed to fetch players:", playersRes.status);
+        const playersData = await playersRes.json();
+        const clubsData = await clubsRes.json();
+        const groupsData = await groupsRes.json();
+
+        if (playersRes.ok === false) {
+          const msg = (playersData as { error?: string }).error || playersRes.statusText;
+          console.error("Failed to fetch players:", playersRes.status, msg);
+          if (playersRes.status === 500) setApiError((prev) => prev || msg);
         }
-        if (!clubsRes.ok) {
-          console.error("Failed to fetch clubs:", clubsRes.status, clubsRes.statusText);
+        if (clubsRes.ok === false) {
+          const msg = (clubsData as { error?: string }).error || clubsRes.statusText;
+          console.error("Failed to fetch clubs:", clubsRes.status, msg);
+          if (clubsRes.status === 500) setApiError((prev) => prev || msg);
         }
         if (!groupsRes.ok) {
           console.error("Failed to fetch groups:", groupsRes.status);
         }
 
-        const playersData = await playersRes.json();
-        const clubsData = await clubsRes.json();
-        const groupsData = await groupsRes.json();
-
         console.log("Fetched data:", {
-          players: playersData.data?.length || 0,
-          clubs: clubsData.data?.length || 0,
-          groups: groupsData.data?.length || 0,
+          players: playersData.data?.length ?? 0,
+          clubs: clubsData.data?.length ?? 0,
+          groups: groupsData.data?.length ?? 0,
         });
 
-        setPlayers(playersData.data || []);
-        setClubs(clubsData.data || []);
-        setGroups(groupsData.data || []);
+        setPlayers(playersData.data ?? []);
+        setClubs(clubsData.data ?? []);
+        setGroups(groupsData.data ?? []);
       } catch (error) {
         console.error("Failed to fetch data:", error);
+        setApiError(error instanceof Error ? error.message : "Грешка при зареждане");
       } finally {
         setLoading(false);
       }
@@ -104,7 +111,8 @@ export function AdminPlayersPage() {
             <DemoActions />
             <TeamSelection 
               clubs={clubs} 
-              onSelectClub={setSelectedClubId} 
+              onSelectClub={setSelectedClubId}
+              apiError={apiError}
             />
           </>
         ) : (

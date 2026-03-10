@@ -8,21 +8,55 @@ import type { Club } from "@/types/database";
 interface TeamSelectionProps {
   clubs: Club[];
   onSelectClub: (clubId: string) => void;
+  apiError?: string | null;
 }
 
-export function TeamSelection({ clubs, onSelectClub }: TeamSelectionProps) {
+export function TeamSelection({ clubs, onSelectClub, apiError }: TeamSelectionProps) {
+  const isTablesMissing = apiError?.includes("schema cache") ?? false;
+  const isNetworkError =
+    (apiError?.includes("fetch failed") ||
+      apiError?.includes("EAI_AGAIN") ||
+      apiError?.includes("getaddrinfo")) ?? false;
+
   if (clubs.length === 0) {
     return (
       <div className="flex flex-col items-center gap-4 py-16">
         <div className="h-12 w-12 rounded-full bg-white/10 flex items-center justify-center">
           <span className="text-2xl">🏆</span>
         </div>
-        <p className="text-center text-sm text-white/40">
-          Няма налични отбори. Проверете връзката със сървъра или изчакайте зареждането на данните.
-        </p>
-        <p className="text-center text-xs text-white/30">
-          Ако проблемът продължава, проверете конзолата за грешки.
-        </p>
+        {isNetworkError ? (
+          <>
+            <p className="text-center text-sm font-medium text-amber-400/90 max-w-md">
+              Supabase не е достъпен (DNS/мрежа). Проверете интернет връзката или опитайте отново след малко.
+            </p>
+            <p className="text-center text-xs text-white/50 max-w-md mt-2">
+              За локални данни без Supabase: добавете <code className="bg-white/10 px-1 rounded">USE_LOCAL_DB=true</code> в <code className="bg-white/10 px-1 rounded">.env.local</code> и рестартирайте сървъра.
+            </p>
+          </>
+        ) : isTablesMissing ? (
+          <>
+            <p className="text-center text-sm font-medium text-amber-400/90 max-w-md">
+              Таблиците в Supabase липсват. Създайте ги от Supabase Dashboard:
+            </p>
+            <ol className="text-center text-xs text-white/50 list-decimal list-inside space-y-1 max-w-md">
+              <li>SQL Editor → New query</li>
+              <li>Пуснете <code className="bg-white/10 px-1 rounded">supabase/apply_full_schema.sql</code></li>
+              <li>След това <code className="bg-white/10 px-1 rounded">supabase/seed_sample_data.sql</code></li>
+            </ol>
+            <p className="text-center text-xs text-white/40 mt-2">
+              След това презаредете страницата.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-center text-sm text-white/40">
+              Няма налични отбори. Проверете връзката със сървъра или изчакайте зареждането на данните.
+            </p>
+            <p className="text-center text-xs text-white/30">
+              Ако проблемът продължава, проверете конзолата за грешки.
+            </p>
+          </>
+        )}
       </div>
     );
   }

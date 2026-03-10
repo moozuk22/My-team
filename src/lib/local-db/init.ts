@@ -11,7 +11,7 @@ export function initLocalDB() {
   if (typeof window === "undefined") {
     if (
       process.env.USE_LOCAL_DB === "true" ||
-      (!process.env.VITE_SUPABASE_URL && !process.env.SUPABASE_URL)
+      (!process.env.VITE_SUPABASE_URL && !process.env.SUPABASE_URL && !process.env.NEXT_PUBLIC_SUPABASE_URL)
     ) {
       seedDatabase();
     }
@@ -22,7 +22,7 @@ export function initLocalDB() {
 if (typeof window === "undefined") {
   if (
     process.env.USE_LOCAL_DB === "true" ||
-    (!process.env.VITE_SUPABASE_URL && !process.env.SUPABASE_URL)
+    (!process.env.VITE_SUPABASE_URL && !process.env.SUPABASE_URL && !process.env.NEXT_PUBLIC_SUPABASE_URL)
   ) {
     initLocalDB();
   }

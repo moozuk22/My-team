@@ -15,11 +15,13 @@ router.get("/clubs", async (req, res) => {
       .order("name");
 
     if (error) {
+      console.error("[API /players/clubs] Supabase error:", error.message, error);
       return res.status(500).json({ error: error.message });
     }
 
     res.json({ data: data || [] });
   } catch (error) {
+    console.error("[API /players/clubs] Error:", error.message, error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -36,11 +38,13 @@ router.get("/", async (req, res) => {
       .order("full_name");
 
     if (error) {
+      console.error("[API /players] Supabase error:", error.message, error);
       return res.status(500).json({ error: error.message });
     }
 
     res.json({ data: data || [] });
   } catch (error) {
+    console.error("[API /players] Error:", error.message, error);
     res.status(500).json({ error: error.message });
   }
 });

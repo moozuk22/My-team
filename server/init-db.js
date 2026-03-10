@@ -67,6 +67,6 @@ function seedDatabase() {
 }
 
 // Initialize if local DB is enabled
-if (process.env.USE_LOCAL_DB === "true" || !process.env.VITE_SUPABASE_URL) {
+if (process.env.USE_LOCAL_DB === "true" || (!process.env.VITE_SUPABASE_URL && !process.env.SUPABASE_URL && !process.env.NEXT_PUBLIC_SUPABASE_URL)) {
   seedDatabase();
 }

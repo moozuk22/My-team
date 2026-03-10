@@ -37,18 +37,24 @@ if (existsSync(envPath)) {
   }
 }
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SERVICE_ROLE_KEY = process.env.SERVICE_ROLE_KEY;
+const SUPABASE_URL =
+  process.env.VITE_SUPABASE_URL ||
+  process.env.SUPABASE_URL ||
+  process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_KEY =
+  process.env.SERVICE_ROLE_KEY ||
+  process.env.SUPABASE_ANON_KEY ||
+  process.env.VITE_SUPABASE_ANON_KEY;
 
-if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
+if (!SUPABASE_URL || !SUPABASE_KEY) {
   console.error(
-    "❌ Missing NEXT_PUBLIC_SUPABASE_URL or SERVICE_ROLE_KEY in .env.local"
+    "❌ Missing Supabase URL and key. Set in .env.local: VITE_SUPABASE_URL (or SUPABASE_URL) and VITE_SUPABASE_ANON_KEY (or SUPABASE_ANON_KEY or SERVICE_ROLE_KEY)"
   );
   process.exit(1);
 }
 
-// Use service role key for storage uploads and upserts
-const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+// Prefer service role for storage uploads and bulk upserts; anon works if RLS allows
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const CLUB_ID = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"; // ФК Вихър Войводиново
 const CSV_PATH = join(__dirname, "players.csv");

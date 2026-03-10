@@ -7,20 +7,8 @@
 
 import { localDB, dbEvents, type Player, type Club, type PaymentLog, type PushSubscription } from "./database";
 
-// Check if local mode is enabled
-// Use import.meta.env for client-side, process.env for server-side
-const getEnv = (key: string) => {
-  if (typeof window !== "undefined") {
-    // Client-side: use import.meta.env
-    return import.meta.env[key];
-  }
-  // Server-side: use process.env
-  return process.env[key];
-};
-
-export const USE_LOCAL_DB =
-  getEnv("USE_LOCAL_DB") === "true" ||
-  (!getEnv("VITE_SUPABASE_URL") && !getEnv("SUPABASE_URL"));
+// Local DB is now disabled; always use real Supabase.
+export const USE_LOCAL_DB = false;
 
 // Mock Supabase query builder
 class MockQueryBuilder<T> {

@@ -10,7 +10,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "import": "node scripts/bulk-import.mjs"
+    "import": "node scripts/bulk-import.mjs",
+    "db:push": "supabase db push",
+    "db:link": "supabase link --project-ref xxjalhbspqohkhofsoga"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.2",
