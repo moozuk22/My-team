@@ -33,7 +33,7 @@ router.get("/", async (req, res) => {
     const { data, error } = await supabase
       .from("players")
       .select(
-        "id, full_name, nfc_tag_id, status, jersey_number, birth_date, team_group, last_payment_date, avatar_url"
+        "id, club_id, full_name, nfc_tag_id, status, jersey_number, birth_date, team_group, last_payment_date, avatar_url"
       )
       .order("full_name");
 
