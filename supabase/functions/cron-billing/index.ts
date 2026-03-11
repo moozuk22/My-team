@@ -142,6 +142,82 @@ Deno.serve(async (req) => {
 
   const actions: string[] = [];
 
+  // ── Rolling expiry: last_payment_date + 30 days → overdue ────────────────
+  try {
+    const EXPIRY_DAYS = 30;
+    const now = new Date();
+    const cutoff = new Date(
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate() - EXPIRY_DAYS,
+        now.getUTCHours(),
+        now.getUTCMinutes(),
+        now.getUTCSeconds()
+      )
+    );
+    const cutoffIso = cutoff.toISOString();
+
+    const { data: expiredCandidates, error: expErr } = await supabase
+      .from("players")
+      .select("id, full_name, nfc_tag_id, last_payment_date")
+      .eq("status", "paid")
+      .lt("last_payment_date", cutoffIso);
+
+    if (expErr) {
+      console.error("[cron] Rolling expiry query error:", expErr.message);
+    }
+
+    const toExpire = expiredCandidates ?? [];
+    if (toExpire.length > 0) {
+      console.log(
+        `[cron] Rolling expiry: ${toExpire.length} player(s) to mark as overdue (paid → overdue based on last_payment_date)`
+      );
+      toExpire.forEach((p) =>
+        console.log(
+          `[cron]   - ${p.full_name} (last_payment_date=${p.last_payment_date})`
+        )
+      );
+
+      const ids = toExpire.map((p) => p.id);
+      const { error: updErr } = await supabase
+        .from("players")
+        .update({ status: "overdue" })
+        .in("id", ids);
+
+      if (updErr) {
+        console.error(
+          "[cron] Rolling expiry update error (paid → overdue):",
+          updErr.message
+        );
+      } else {
+        await Promise.allSettled(
+          toExpire.map((p) =>
+            sendPushToPlayer(
+              p.id,
+              p.full_name,
+              {
+                title: "Smart Club",
+                body: "Картата изтече. Моля, подновете абонамента.",
+                url: `${APP_URL}/p/${p.nfc_tag_id}`,
+              },
+              isDemo
+            )
+          )
+        );
+
+        actions.push(
+          `Rolling expiry: Marked ${toExpire.length} player(s) as overdue (paid → overdue) and sent push`
+        );
+      }
+    } else {
+      actions.push("Rolling expiry: No paid players past expiry threshold");
+    }
+  } catch (e) {
+    console.error("[cron] Rolling expiry block threw:", e);
+    actions.push("Rolling expiry: error (see logs)");
+  }
+
   // ── reminder_25 / reminder_29 ─────────────────────────────────────────
   // Rule C: Only notify players whose status is 'warning'
   if (type === "reminder_25" || type === "reminder_29") {
