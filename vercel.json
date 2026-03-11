@@ -3,6 +3,10 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/api/players/tag/:tagId",
+      "destination": "/api/players/tag-by-id"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
