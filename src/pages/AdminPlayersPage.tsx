@@ -159,7 +159,8 @@ export function AdminPlayersPage() {
             </div>
             <PlayersListDashboard 
               players={filteredPlayers} 
-              groups={groups} 
+              groups={groups}
+              apiError={apiError}
             />
           </>
         )}

@@ -33,11 +33,13 @@ const MIN_SEARCH_LENGTH = 2;
 interface PlayersListDashboardProps {
   players: Player[];
   groups: number[];
+  apiError?: string | null;
 }
 
 export function PlayersListDashboard({
   players,
   groups,
+  apiError,
 }: PlayersListDashboardProps) {
   const [search, setSearch] = useState("");
   const [groupFilter, setGroupFilter] = useState<number | null>(null);
@@ -183,6 +185,11 @@ export function PlayersListDashboard({
               ? "Няма намерени играчи с избраните филтри."
               : "Моля, изберете набор или потърсете играч по име/номер."}
           </p>
+          {optimisticPlayers.length === 0 && apiError && (
+            <p className="max-w-md text-center text-xs text-amber-400/90">
+              {apiError}
+            </p>
+          )}
         </div>
       ) : (
         <div className="flex flex-col gap-3">
