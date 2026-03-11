@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
@@ -120,8 +121,18 @@ export function ReportsCenter({ players, groups }: ReportsCenterProps) {
     try {
       const periodString = `${BG_MONTHS[month]} ${year}`;
       const response = await fetch(`/api/players/payments?period=${encodeURIComponent(periodString)}`);
-      const result = await response.json();
-      setPaymentLogs((result.data as PaymentLogRow[]) ?? []);
+      const text = await response.text();
+      let result: { data?: PaymentLogRow[] } = {};
+      if (text.trim()) {
+        try {
+          result = JSON.parse(text) as { data?: PaymentLogRow[] };
+        } catch {
+          console.error("Failed to fetch payment logs: invalid JSON", response.status);
+          setPaymentLogs([]);
+          return;
+        }
+      }
+      setPaymentLogs(result.data ?? []);
     } catch (error) {
       console.error("Failed to fetch payment logs:", error);
       setPaymentLogs([]);
@@ -232,8 +243,18 @@ export function ReportsCenter({ players, groups }: ReportsCenterProps) {
 
     try {
       const response = await fetch(`/api/players/payments?year=${year}`);
-      const result = await response.json();
-      const logs = (result.data as PaymentLogRow[]) ?? [];
+      const text = await response.text();
+      let result: { data?: PaymentLogRow[] } = {};
+      if (text.trim()) {
+        try {
+          result = JSON.parse(text) as { data?: PaymentLogRow[] };
+        } catch {
+          console.error("Failed to fetch annual report data: invalid JSON", response.status);
+          setLoadingAnnual(false);
+          return;
+        }
+      }
+      const logs = result.data ?? [];
 
     // Build paid map: player_id → Set<monthIndex>
     const paidMap = new Map<string, Set<number>>();
@@ -350,12 +371,15 @@ export function ReportsCenter({ players, groups }: ReportsCenterProps) {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-[#0d0d0d] border-white/10 text-white">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-[#0d0d0d] border-white/10 text-white" aria-describedby="reports-dialog-desc">
         <DialogHeader>
           <DialogTitle className="text-[#32cd32] flex items-center gap-2">
             <BarChart3 className="size-5" />
             Център за отчети
           </DialogTitle>
+          <DialogDescription id="reports-dialog-desc" className="sr-only">
+            Филтри и отчети за плащания по месец и година
+          </DialogDescription>
         </DialogHeader>
 
         {/* Filters */}
