@@ -3,7 +3,7 @@ import { getSupabase } from "../supabase.js";
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
@@ -24,7 +24,8 @@ export default async function handler(req, res) {
     }
     return res.status(200).json({ data: data || [] });
   } catch (err) {
-    console.error("[Vercel API /api/players]", err);
-    return res.status(500).json({ error: err.message || "Server error" });
+    const msg = err?.message || "Server error";
+    console.error("[Vercel API /api/players]", msg);
+    return res.status(500).json({ error: msg });
   }
 }
