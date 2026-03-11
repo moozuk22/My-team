@@ -46,25 +46,39 @@ export async function subscribeToPush(
     return { ok: false, error: "VAPID public key is not configured." };
   }
 
-  console.log("[push] Registering service worker...");
-  const registration = await navigator.serviceWorker.register("/sw.js", {
-    scope: "/",
-  });
-  await navigator.serviceWorker.ready;
-  console.log("[push] Service worker ready.");
+  let registration: ServiceWorkerRegistration;
+  try {
+    console.log("[push] Registering service worker...");
+    registration = await navigator.serviceWorker.register("/sw.js", {
+      scope: "/",
+    });
+    console.log("[push] Service worker registered, waiting for ready...");
+    await navigator.serviceWorker.ready;
+    console.log("[push] Service worker ready.");
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[push] Service worker registration failed:", msg);
+    return { ok: false, error: `Service worker error: ${msg}` };
+  }
 
   // Check if there's already an active push subscription
-  let subscription = await registration.pushManager.getSubscription();
-
-  if (subscription) {
-    console.log("[push] Existing push subscription found, reusing:", subscription.endpoint);
-  } else {
-    console.log("[push] No existing subscription, creating new one...");
-    subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
-    });
-    console.log("[push] New push subscription created:", subscription.endpoint);
+  let subscription: PushSubscription;
+  try {
+    subscription = (await registration.pushManager.getSubscription())!;
+    if (!subscription) {
+      console.log("[push] No existing subscription, creating new one...");
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+      });
+      console.log("[push] New push subscription created:", subscription.endpoint);
+    } else {
+      console.log("[push] Existing push subscription found, reusing:", subscription.endpoint);
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[push] Push subscription failed:", msg);
+    return { ok: false, error: `Push subscription failed: ${msg}` };
   }
 
   const json = subscription.toJSON();

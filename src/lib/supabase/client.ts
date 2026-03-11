@@ -14,17 +14,23 @@ function getSupabaseAnonKey() {
   );
 }
 
+let browserClient: ReturnType<typeof createSupabaseClient> | null = null;
+
 export function createClient() {
-  // Use local database if enabled or if Supabase URL is not configured
   if (USE_LOCAL_DB) {
     return createMockClient() as any;
   }
 
-  const url = getSupabaseUrl();
-  const key = getSupabaseAnonKey();
-  if (!url || !key) {
-    throw new Error("Missing VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY (or NEXT_PUBLIC_* equivalents)");
+  if (!browserClient) {
+    const url = getSupabaseUrl();
+    const key = getSupabaseAnonKey();
+    if (!url || !key) {
+      throw new Error(
+        "Missing VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY (or NEXT_PUBLIC_* equivalents)",
+      );
+    }
+    browserClient = createSupabaseClient(url, key);
   }
 
-  return createSupabaseClient(url, key);
+  return browserClient;
 }
