@@ -15,6 +15,8 @@ type State =
 
 interface EnableNotificationsButtonProps {
   playerId: string;
+  /** Show extra UI for testing notifications locally. */
+  showTestButtons?: boolean;
 }
 
 // ── iOS "Add to Home Screen" guide ──────────────────────────────────────────
@@ -73,12 +75,50 @@ function IOSInstallGuide({ onClose }: { onClose: () => void }) {
 
 export function EnableNotificationsButton({
   playerId,
+  showTestButtons = true,
 }: EnableNotificationsButtonProps) {
   const [mounted, setMounted] = useState(false);
   const [state, setState] = useState<State>("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showGuide, setShowGuide] = useState(false);
   const subscribingRef = useRef(false);
+
+  async function testNotification(kind: "reminder" | "overdue") {
+    try {
+      if (!("serviceWorker" in navigator)) {
+        throw new Error("Service worker is not supported in this browser.");
+      }
+      if (!("Notification" in window)) {
+        throw new Error("Notifications are not supported in this browser.");
+      }
+      if (Notification.permission !== "granted") {
+        const p = await Notification.requestPermission();
+        if (p !== "granted") throw new Error(`Notification permission: ${p}`);
+      }
+
+      const reg = await navigator.serviceWorker.getRegistration("/");
+      if (!reg) throw new Error("Service worker is not registered.");
+
+      const title = "Smart Club";
+      const body =
+        kind === "reminder"
+          ? "Тест: Напомняне за членски внос."
+          : "Тест: Плащането е просрочено.";
+
+      await reg.showNotification(title, {
+        body,
+        tag: `smartclub-test-${kind}`,
+        renotify: true,
+        vibrate: [100, 50, 100],
+        data: { url: window.location.pathname },
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      console.warn("[notifications] Test notification failed:", msg);
+      setErrorMsg(msg);
+      setState("denied");
+    }
+  }
 
   async function doSubscribe() {
     // Prevent concurrent calls (React Strict Mode, double-fire, etc.)
@@ -216,17 +256,41 @@ export function EnableNotificationsButton({
 
   // ── Default: idle / loading — button triggers permission via user gesture ──
   return (
-    <Button
-      onClick={doSubscribe}
-      disabled={state === "loading"}
-      className="w-full gap-2 bg-white/10 text-white hover:bg-white/20 border border-white/20"
-    >
-      {state === "loading" ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
-      ) : (
-        <Bell className="h-4 w-4" />
+    <div className="flex flex-col gap-2">
+      <Button
+        onClick={doSubscribe}
+        disabled={state === "loading"}
+        className="w-full gap-2 bg-white/10 text-white hover:bg-white/20 border border-white/20"
+      >
+        {state === "loading" ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Bell className="h-4 w-4" />
+        )}
+        Активиране на известия
+      </Button>
+
+      {showTestButtons && Notification.permission === "granted" && (
+        <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+          <p className="mb-2 text-[10px] font-semibold tracking-[0.16em] text-white/35">
+            DEMO ACTIONS
+          </p>
+          <div className="flex flex-col gap-2">
+            <Button
+              onClick={() => testNotification("reminder")}
+              className="w-full justify-center bg-[#f5b000]/15 text-[#f5b000] hover:bg-[#f5b000]/25 border border-[#f5b000]/30"
+            >
+              Симулирай Напомняне
+            </Button>
+            <Button
+              onClick={() => testNotification("overdue")}
+              className="w-full justify-center bg-[#ff4d4d]/15 text-[#ff4d4d] hover:bg-[#ff4d4d]/25 border border-[#ff4d4d]/30"
+            >
+              Симулирай Просрочие
+            </Button>
+          </div>
+        </div>
       )}
-      Активиране на известия
-    </Button>
+    </div>
   );
 }

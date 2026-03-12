@@ -13,6 +13,17 @@ In your Vercel project: **Settings → Environment Variables**, add:
 
 You can also use `SUPABASE_URL` / `SUPABASE_ANON_KEY` (or `NEXT_PUBLIC_*`); the serverless API reads any of these.
 
+### Demo buttons / notifications (Admin “DEMO ACTIONS”)
+
+If you want the admin “DEMO ACTIONS” buttons to work in **production**, add:
+
+| Name | Value | Environments |
+|------|--------|-------------|
+| `SERVICE_ROLE_KEY` | Supabase **service role** key (server-side only) | Production, Preview |
+
+This is required for `/api/debug/notify` to call the Supabase Edge Function `cron-billing`.
+Do **not** expose the service role key in client-side env vars (never prefix it with `VITE_`).
+
 ## 2. Redeploy
 
 After saving the variables, trigger a new deployment (e.g. **Deployments → … → Redeploy**) so the build picks them up. The admin page should then show clubs and players from Supabase.
