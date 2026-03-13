@@ -8,6 +8,12 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
+      strategies: "injectManifest",
+      srcDir: "public",
+      filename: "sw.js",
+      injectManifest: {
+        injectionPoint: undefined,
+      },
       includeAssets: ["favicon.ico", "icons/icon-192x192.png"],
       manifest: {
         name: "Smart Club",
@@ -24,9 +30,6 @@ export default defineConfig({
             type: "image/png",
           },
         ],
-      },
-      workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
       },
     }),
   ],
