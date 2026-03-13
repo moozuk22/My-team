@@ -104,40 +104,44 @@ export function ProfilePage() {
     <SmartRedirect tagId={tagId!}>
       <main className="flex min-h-dvh items-center justify-center bg-[#0a0a0a] p-4">
         <div className="w-full max-w-[420px] space-y-3">
-          {pushToast && (
-            <div
-              className="rounded-xl border p-4 text-sm animate-in fade-in slide-in-from-top-2 duration-300"
-              style={{ borderColor: "rgba(50,205,50,0.4)", backgroundColor: "rgba(50,205,50,0.08)", color: "#32cd32" }}
-            >
-              <p className="font-semibold">{pushToast.title}</p>
-              <p className="mt-1 opacity-90">{pushToast.body}</p>
-              <button
-                type="button"
-                onClick={() => setPushToast(null)}
-                className="mt-2 text-xs underline opacity-70 hover:opacity-100"
-              >
-                Затвори
-              </button>
-            </div>
-          )}
           {statusMsg && (
             <div className={`rounded-xl border p-4 text-sm ${statusMsg.className}`}>
               <p className="font-semibold">Smart Club</p>
               <p className="mt-1 opacity-95">{statusMsg.body}</p>
             </div>
           )}
-          <RealtimeStatusCard
-            playerId={player.id}
-            playerName={player.full_name}
-            clubName={player.clubs.name}
-            initialStatus={player.status}
-            jerseyNumber={player.jersey_number}
-            birthDate={player.birth_date}
-            teamGroup={player.team_group}
-            lastPaymentDate={player.last_payment_date}
-            avatarUrl={player.avatar_url}
-            emblemUrl={player.clubs.emblem_url}
-          />
+          <div className="relative">
+            <RealtimeStatusCard
+              playerId={player.id}
+              playerName={player.full_name}
+              clubName={player.clubs.name}
+              initialStatus={player.status}
+              jerseyNumber={player.jersey_number}
+              birthDate={player.birth_date}
+              teamGroup={player.team_group}
+              lastPaymentDate={player.last_payment_date}
+              avatarUrl={player.avatar_url}
+              emblemUrl={player.clubs.emblem_url}
+            />
+            {pushToast && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/60">
+                <div className="mx-4 rounded-xl border border-[#32cd32]/40 bg-[#0b1c0b]/95 p-4 text-sm text-[#d9ffd9] shadow-lg shadow-black/60">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8bff8b]/80">
+                    SMART CLUB ИЗВЕСТИЕ
+                  </p>
+                  <p className="mt-1 font-semibold">{pushToast.title}</p>
+                  <p className="mt-1.5 leading-snug">{pushToast.body}</p>
+                  <button
+                    type="button"
+                    onClick={() => setPushToast(null)}
+                    className="mt-3 text-xs font-medium text-[#8bff8b] underline underline-offset-2 hover:text-[#b7ffb7]"
+                  >
+                    Затвори
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
           <div className="mt-3">
             <EnableNotificationsButton playerId={player.id} />
           </div>
