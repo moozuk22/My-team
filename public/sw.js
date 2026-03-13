@@ -22,7 +22,17 @@ self.addEventListener("push", (event) => {
     data: { url: data.url || "/" },
   };
 
-  event.waitUntil(self.registration.showNotification(data.title || "Smart Club", options));
+  event.waitUntil(
+    self.registration.showNotification(data.title || "Smart Club", options).then(function () {
+      // Notify open tabs so they can show in-page notification
+      return self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(function (clients) {
+        const payload = { type: "PUSH_NOTIFICATION", title: data.title || "Smart Club", body: data.body, url: data.url || "/" };
+        clients.forEach(function (client) {
+          client.postMessage(payload);
+        });
+      });
+    })
+  );
 });
 
 self.addEventListener("notificationclick", (event) => {

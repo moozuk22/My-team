@@ -16,7 +16,7 @@ webPush.setVapidDetails(
 );
 
 const APP_URL =
-  Deno.env.get("APP_URL") ?? "https://smart-club-henna.vercel.app";
+  Deno.env.get("APP_URL") ?? "https://my-team-lime-eight.vercel.app";
 
 // ── Push helper ─────────────────────────────────────────────────────────────
 
