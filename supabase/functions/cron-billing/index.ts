@@ -244,16 +244,18 @@ Deno.serve(async (req) => {
 
       await Promise.allSettled(
         players.map((p) =>
-          sendPushToPlayer(
-            p.id,
-            p.full_name,
-            {
-              title: "Smart Club",
-              body: pushBody,
-              url: `${APP_URL}/p/${p.nfc_tag_id}`,
-            },
-            isDemo
-          )
+            sendPushToPlayer(
+              p.id,
+              p.full_name,
+              {
+                // Показваме основния текст в заглавието,
+                // защото мобилните браузъри най-често визуализират само него.
+                title: pushBody,
+                body: "Smart Club",
+                url: `${APP_URL}/p/${p.nfc_tag_id}`,
+              },
+              isDemo
+            )
         )
       );
 
@@ -293,8 +295,8 @@ Deno.serve(async (req) => {
               p.id,
               p.full_name,
               {
-                title: "Smart Club",
-                body: "Просрочено плащане! Дължите две такси.",
+                title: "Просрочено плащане! Дължите две такси.",
+                body: "Smart Club",
                 url: `${APP_URL}/p/${p.nfc_tag_id}`,
               },
               isDemo
@@ -344,8 +346,8 @@ Deno.serve(async (req) => {
               p.id,
               p.full_name,
               {
-                title: "Smart Club",
-                body: "Просрочено плащане! Дължите две такси.",
+                title: "Просрочено плащане! Дължите две такси.",
+                body: "Smart Club",
                 url: `${APP_URL}/p/${p.nfc_tag_id}`,
               },
               isDemo
